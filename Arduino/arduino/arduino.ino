@@ -15,10 +15,11 @@ const bool MOTOR_RELEASE = false;
 const bool MOTOR_HOLD = true;
 
 int targetDistance = 0;
-int RPS = 0;
-int rotationCount = 0;
+int offset = 0;
+float RPS = 0;
 
 unsigned long int lastTime;
+unsigned long int timeDif = 1;
 
 bool IRpinFlag = false;
 bool motorState = false;
@@ -58,19 +59,16 @@ void getRPS()
         if(IRpinFlag == false)
         {
             IRpinFlag = true;
-            rotationCount += 1;
+            timeDif = millis() - lastTime;
+
+            RPS = 1.0f/timeDif;
+
+            lastTime = millis();
         }
     }
     else
     {
         IRpinFlag = false;
-    }
-
-    if(millis() - lastTime > 1000)
-    {
-        lastTime = millis();
-        RPS = rotationCount;
-        rotationCount = 0;
     }
 }
 
@@ -90,6 +88,15 @@ void checkSerial()
             targetDistance = d1000 * 1000 + d100 * 100 + d10 * 10 + d1;
         break;
 
+        case 'O':
+            //set offset
+            int o100 = BTSerial.read() - '0';
+            int o10 = BTSerial.read() - '0';
+            int o1 = BTSerial.read() - '0';
+
+            offset = o100 * 100 + o10 * 10 + o1;
+        break;
+
         case 'S':
             //shoot
             //code Here
@@ -98,9 +105,9 @@ void checkSerial()
 
         case 'G':
             //get Data
-            //code Here
-
-
+            char tmp[50];
+            dtostrf(RPS, 5, 10, tmp);
+            BTSerial.write(tmp);
         break;
 
         case 'H':

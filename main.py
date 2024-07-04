@@ -16,6 +16,7 @@ RADIUS = 0.6 #단위 m
 targetDistance = 50
 maxDistance = 1000
 velocity = 100
+offsetMotor = 20
 
 RPS = 12 #Rotation Per Second
 FONT_DIGIT = ("DS-Digital Bold Italic", 40)
@@ -40,8 +41,23 @@ def sendSetDistance():
 		addLog(f"거리 설정 실패 / 0 ~ {int(maxDistance)} 사이에 {targetDistance}가 없음.")
 		return
 	
-	# protocol.setDistance(ser, targetDistance)
+	if not TEST_MODE:
+		protocol.setDistance(ser, targetDistance)
 	addLog(f"거리 설정 : {targetDistance} cm")
+
+def sendSetOffset():
+	global OffsetString, offsetMotor
+	try:
+		offsetMotor = int(OffsetString.get())
+	except:
+		return
+	if offsetMotor < 0 or offsetMotor > 999:
+		addLog(f"거리 설정 실패 / 0 ~ 999 사이에 {offsetMotor}가 없음.")
+		return
+	
+	if not TEST_MODE:
+		protocol.setOffset(ser, offsetMotor)
+	addLog(f"모터 오프셋 설정 : {offsetMotor} ms")
 
 def sendMotorHold():
 	if not TEST_MODE:
@@ -107,7 +123,7 @@ def setLabelDatas(RPSLabelString : StringVar,
 
 
 root = Tk()
-root.geometry("500x800")
+root.geometry("500x900")
 if TEST_MODE:
 	root.title("SpinLaunch 관리 시스템 - 테스트 모드 ~~~~~~~~~~~~~~~~~~~~~~")
 else:
@@ -162,6 +178,16 @@ DistanceBox = ttk.Spinbox(labelFrameControler, from_=0, to=9999, textvariable=Di
 DistanceBox.pack()
 DistanceButton = Button(labelFrameControler, text="거리 설정하기", width=20, command=sendSetDistance)
 DistanceButton.pack()
+addSpace(labelFrameControler)
+
+# 거리 설정
+addStaticLabel(labelFrameControler, "Offset ( 모터 오프셋 [ms] )", 60)
+OffsetString = StringVar()
+OffsetString.set(str(offsetMotor))
+OffsetBox = ttk.Spinbox(labelFrameControler, from_=0, to=999, textvariable=OffsetString)
+OffsetBox.pack()
+OffsetButton = Button(labelFrameControler, text="모터 오프셋 설정하기", width=20, command=sendSetOffset)
+OffsetButton.pack()
 addSpace(labelFrameControler)
 
 # 모터 홀드 버튼

@@ -9,6 +9,15 @@ def setDistance(ser : Serial, centimeter : int) -> None:
 	
 	ser.write(f"D{str(centimeter).zfill(4)}".encode())
 
+def setOffset(ser : Serial, offset : int) -> None:
+	"""
+	모터 오프셋 설정
+	"""
+	if offset < 0 or offset > 999:
+		return
+	
+	ser.write(f"O{str(offset).zfill(3)}".encode())
+
 def shoot(ser : Serial) -> None:
 	"""
 	발사
