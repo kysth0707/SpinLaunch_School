@@ -6,6 +6,10 @@ import protocol
 import mac
 import math
 
+
+TEST_MODE = True
+exitFlag = False
+
 GRAVITY = 9.80655
 
 RADIUS = 0.6 #단위 m
@@ -16,13 +20,14 @@ velocity = 100
 RPS = 12 #Rotation Per Second
 FONT_DIGIT = ("DS-Digital Bold Italic", 40)
 
-try:
-	port = 9600
-	com = mac.macFinder()
-	ser = Serial(com, port, timeout=0.2)
-except:
-	print("시리얼 연결 실패")
-	exit()
+if not TEST_MODE:
+	try:
+		port = 9600
+		com = mac.macFinder()
+		ser = Serial(com, port, timeout=0.2)
+	except:
+		print("시리얼 연결 실패")
+		exit()
 
 # ====== tkinter 버튼 관련 =======
 def sendSetDistance():
@@ -39,16 +44,24 @@ def sendSetDistance():
 	addLog(f"거리 설정 : {targetDistance} cm")
 
 def sendMotorHold():
-	protocol.motorHold(ser)
+	if not TEST_MODE:
+		protocol.motorHold(ser)
 	addLog(f"모터 잡기")
 
 def sendMotorReleased():
-	protocol.motorReleased(ser)
+	if not TEST_MODE:
+		protocol.motorReleased(ser)
 	addLog(f"모터 풀기")
 
 def sendShoot():
-	protocol.shoot(ser)
+	if not TEST_MODE:
+		protocol.shoot(ser)
 	addLog(f"발사 | 거리 : {targetDistance} cm | 속력 : {2 * math.pi * RADIUS * RPS} m/s")
+
+def onQuit():
+    global exitFlag, root
+    exitFlag = True
+    root.destroy()
 
 # ====== 위젯 관련 ======
 def addStaticLabel(root, txt : str, width = None) -> None:
@@ -95,8 +108,11 @@ def setLabelDatas(RPSLabelString : StringVar,
 
 root = Tk()
 root.geometry("500x800")
-root.title("SpinLaunch 관리 시스템")
-
+if TEST_MODE:
+	root.title("SpinLaunch 관리 시스템 - 테스트 모드 ~~~~~~~~~~~~~~~~~~~~~~")
+else:
+	root.title("SpinLaunch 관리 시스템")
+root.protocol("WM_DELETE_WINDOW", onQuit)
 
 
 # 현재 데이터를 보여주는 프레임 생성
@@ -173,8 +189,11 @@ logBox.pack()
 addLog("시스템 시작")
 
 while True:
+	if exitFlag:
+		break
 	root.update()
 
-	SerialText = ser.readline().decode("UTF-8") #데이터 받기
-	if SerialText != "":
-		RPS = int(SerialText)
+	if not TEST_MODE:
+		SerialText = ser.readline().decode("UTF-8") #데이터 받기
+		if SerialText != "":
+			RPS = int(SerialText)

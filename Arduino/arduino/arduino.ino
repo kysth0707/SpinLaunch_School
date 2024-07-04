@@ -14,6 +14,13 @@ Servo ballServo;
 const bool MOTOR_RELEASE = false;
 const bool MOTOR_HOLD = true;
 
+int targetDistance = 0;
+int RPS = 0;
+int rotationCount = 0;
+
+unsigned long int lastTime;
+
+bool IRpinFlag = false;
 bool motorState = false;
 bool lastMotorState = false;
 
@@ -34,27 +41,57 @@ void setup()
 
     //IR 센서 모드 설정
     pinMode(IRSensorPIN, INPUT);
+    lastTime = millis();
 }
 
 void loop() 
 {
+    getRPS();
     checkSerial();
     setMotor();
+}
+
+void getRPS()
+{
+    if(digitalRead(IRSensorPIN) == HIGH)
+    {
+        if(IRpinFlag == false)
+        {
+            IRpinFlag = true;
+            rotationCount += 1;
+        }
+    }
+    else
+    {
+        IRpinFlag = false;
+    }
+
+    if(millis() - lastTime > 1000)
+    {
+        lastTime = millis();
+        RPS = rotationCount;
+        rotationCount = 0;
+    }
 }
 
 void checkSerial()
 {
     char commandCode = BTSerial.read();
+    
     switch (commandCode)
     {
-        case 'lD':
+        case 'D':
             //set distance
-            //code Here
+            int d1000 = BTSerial.read() - '0';
+            int d100 = BTSerial.read() - '0';
+            int d10 = BTSerial.read() - '0';
+            int d1 = BTSerial.read() - '0';
 
+            targetDistance = d1000 * 1000 + d100 * 100 + d10 * 10 + d1;
         break;
 
         case 'S':
-            //set distance
+            //shoot
             //code Here
 
         break;
@@ -62,6 +99,7 @@ void checkSerial()
         case 'G':
             //get Data
             //code Here
+
 
         break;
 
