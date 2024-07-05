@@ -222,4 +222,4 @@ while True:
 	if not TEST_MODE:
 		SerialText = ser.readline().decode("UTF-8") #데이터 받기
 		if SerialText != "":
-			RPS = int(SerialText)
+			RPS = float(SerialText)
